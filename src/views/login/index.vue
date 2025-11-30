@@ -107,6 +107,7 @@ export default {
   destroyed () {
     clearInterval(this.timer)
   },
+  // 登录按钮（校验 & 提交）
   async login () {
     if (!this.validFn()) {
       return
@@ -115,7 +116,9 @@ export default {
       this.$toast('请输入正确的手机验证码')
       return
     }
-    await codeLogin(this.mobile, this.msgCode)
+
+    const res = await codeLogin(this.mobile, this.msgCode)
+    this.$store.commit('user/setUserInfo', res.data)
     this.$router.push('/')
     this.$toast('登录成功')
   }
