@@ -1,4 +1,4 @@
-import { NavBar, Button, Icon, Search, Swipe, SwipeItem, Grid, GridItem } from 'vant'
+import { NavBar, Button, Icon, Search, Swipe, SwipeItem, Grid, GridItem, Lazyload } from 'vant'
 import Vue from 'vue'
 
 Vue.use(NavBar)
@@ -9,3 +9,4 @@ Vue.use(Swipe)
 Vue.use(SwipeItem)
 Vue.use(GridItem)
 Vue.use(Grid)
+Vue.use(Lazyload)
