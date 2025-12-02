@@ -76,20 +76,56 @@
         <span>首页</span>
       </div>
       <div class="icon-cart">
+        <span v-if="cartTotal > 0" class="num">{{ cartTotal }}</span>
         <van-icon name="shopping-cart-o" />
         <span>购物车</span>
       </div>
-      <div class="btn-add">加入购物车</div>
-      <div class="btn-buy">立刻购买</div>
+      <div class="btn-add" @click="addFn">加入购物车</div>
+      <div class="btn-buy" @click="buyFn">立刻购买</div>
     </div>
+    <!-- 加入购物车/立即购买 公用的弹层 -->
+    <van-action-sheet v-model="showPannel" :title="mode === 'cart' ? '加入购物车' : '立刻购买'">
+      <div class="product">
+        <div class="product-title">
+          <div class="left">
+            <img :src="detail.goods_image" alt="">
+          </div>
+          <div class="right">
+            <div class="price">
+              <span>¥</span>
+              <span class="nowprice">{{ detail.goods_price_min }}</span>
+            </div>
+            <div class="count">
+              <span>库存</span>
+              <span>{{ detail.stock_total }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="num-box">
+          <span>数量</span>
+          <CountBox v-model="addCount"></CountBox>
+        </div>
+        <div class="showbtn" v-if="detail.stock_total > 0">
+          <div class="btn" v-if="mode === 'cart'" @click="addCart">加入购物车</div>
+          <div class="btn now" v-if="mode === 'buyNow'">立刻购买</div>
+        </div>
+        <div class="btn-none" v-else>该商品已抢完</div>
+      </div>
+    </van-action-sheet>
+
   </div>
 </template>
 
 <script>
 import { getProDetail, getProComments } from '@/api/product'
 import defaultImg from '@/assets/default-avatar.png'
+import CountBox from '@/components/CountBox.vue'
+import { addCart, getCartTotal } from '@/api/cart'
 export default {
   name: 'ProDetail',
+  components: {
+    CountBox
+  },
   data () {
     return {
       images: [
@@ -98,19 +134,58 @@ export default {
       ],
       current: 0,
       detail: {},
-      total: 0,
-      commentList: [],
-      defaultImg
+      total: 0, // 评价总数
+      commentList: [], // 评价列表
+      defaultImg,
+      showPannel: false, // 控制弹层的显示隐藏
+      mode: 'cart', // 标记弹层状态
+      addCount: 1, // 数字框绑定的数据
+      cartTotal: 0// 购物车角标
     }
   },
   async created () {
     this.getDetail()
     this.getComments()
+    this.getCartCount()
   },
   async getComments () {
     const { data: { list, total } } = await getProComments(this.goodsId, 3)
     this.commentList = list
     this.total = total
+  },
+  async addCart () {
+  // 判断用户是否有登录
+    if (!this.$store.getters.token) {
+      this.$dialog.confirm({
+        title: '温馨提示',
+        message: '此时需要先登录才能继续操作哦',
+        confirmButtonText: '去登录',
+        cancelButtonText: '再逛逛'
+      })
+        .then(() => {
+          this.$router.replace({
+            path: '/login',
+            query: {
+              backUrl: this.$route.fullPath
+            }
+          })
+        })
+        .catch(() => {})
+      return
+    }
+    console.log('进行加入购物车操作')
+    const { data } = await addCart(this.goodsId, this.addCount, this.detail.skuList[0].goods_sku_id)
+    this.cartTotal = data.cartTotal
+    this.$toast('加入购物车成功')
+    this.showPannel = false
+  },
+  addFn () {
+    this.mode = 'cart'
+    this.showPannel = true
+  },
+  buyFn () {
+    this.mode = 'buyNow'
+    this.showPannel = true
   },
   computed: {
     goodsId () {
@@ -125,6 +200,11 @@ export default {
       const { data: { detail } } = await getProDetail(this.goodsId)
       this.detail = detail
       this.images = detail.goods_images
+    },
+    async getCartCount () {
+      if (!this.$store.getters.token) return
+      const { data: { cartTotal } } = await getCartTotal()
+      this.cartTotal = cartTotal
     }
   }
 }
@@ -280,6 +360,23 @@ export default {
       }
     }
 
+    .icon-cart {
+      position: relative;
+
+      .num {
+        z-index: 999;
+        position: absolute;
+        top: -2px;
+        right: -4px;
+        min-width: 16px;
+        padding: 0 4px;
+        color: #fff;
+        text-align: center;
+        background-color: #ee0a24;
+        border-radius: 50%;
+      }
+    }
+
     .btn-add,
     .btn-buy {
       height: 36px;
@@ -296,9 +393,122 @@ export default {
       background-color: #fe5630;
     }
   }
+
+  .product {
+    .product-title {
+      display: flex;
+
+      .left {
+        img {
+          width: 90px;
+          height: 90px;
+        }
+
+        margin: 10px;
+      }
+
+      .right {
+        flex: 1;
+        padding: 10px;
+
+        .price {
+          font-size: 14px;
+          color: #fe560a;
+
+          .nowprice {
+            font-size: 24px;
+            margin: 0 5px;
+          }
+        }
+      }
+    }
+
+    .num-box {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      align-items: center;
+    }
+
+    .btn,
+    .btn-none {
+      height: 40px;
+      line-height: 40px;
+      margin: 20px;
+      border-radius: 20px;
+      text-align: center;
+      color: rgb(255, 255, 255);
+      background-color: rgb(255, 148, 2);
+    }
+
+    .btn.now {
+      background-color: #fe5630;
+    }
+
+    .btn-none {
+      background-color: #cccccc;
+    }
+  }
 }
 
 .tips {
   padding: 10px;
+}
+
+// 弹层的样式
+.product {
+  .product-title {
+    display: flex;
+
+    .left {
+      img {
+        width: 90px;
+        height: 90px;
+      }
+
+      margin: 10px;
+    }
+
+    .right {
+      flex: 1;
+      padding: 10px;
+
+      .price {
+        font-size: 14px;
+        color: #fe560a;
+
+        .nowprice {
+          font-size: 24px;
+          margin: 0 5px;
+        }
+      }
+    }
+  }
+
+  .num-box {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    align-items: center;
+  }
+
+  .btn,
+  .btn-none {
+    height: 40px;
+    line-height: 40px;
+    margin: 20px;
+    border-radius: 20px;
+    text-align: center;
+    color: rgb(255, 255, 255);
+    background-color: rgb(255, 148, 2);
+  }
+
+  .btn.now {
+    background-color: #fe5630;
+  }
+
+  .btn-none {
+    background-color: #cccccc;
+  }
 }
 </style>

@@ -102,25 +102,29 @@ export default {
         // 发送请求，获取验证码
         this.$toast('发送成功，请注意查收')
       }
+    },
+    // 登录按钮（校验 & 提交）
+    async login () {
+      if (!this.validFn()) {
+        return
+      }
+      if (!/^\d{6}$/.test(this.msgCode)) {
+        this.$toast('请输入正确的手机验证码')
+        return
+      }
+
+      const res = await codeLogin(this.mobile, this.msgCode)
+      this.$store.commit('user/setUserInfo', res.data)
+      this.$toast('登录成功')
+      // 进行判断，看地址栏有无回跳地址
+      // 1. 如果有   => 说明是其他页面，拦截到登录来的，需要回跳
+      // 2. 如果没有 => 正常去首页
+      const url = this.$route.query.backUrl || '/'
+      this.$router.replace(url)
     }
   },
   destroyed () {
     clearInterval(this.timer)
-  },
-  // 登录按钮（校验 & 提交）
-  async login () {
-    if (!this.validFn()) {
-      return
-    }
-    if (!/^\d{6}$/.test(this.msgCode)) {
-      this.$toast('请输入正确的手机验证码')
-      return
-    }
-
-    const res = await codeLogin(this.mobile, this.msgCode)
-    this.$store.commit('user/setUserInfo', res.data)
-    this.$router.push('/')
-    this.$toast('登录成功')
   }
 }
 </script>

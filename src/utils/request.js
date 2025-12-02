@@ -1,6 +1,7 @@
 /* 封装axios用于发送请求 */
 import axios from 'axios'
 import { Toast } from 'vant'
+import store from '@/store'
 // 创建一个新的axios实例
 const request = axios.create({
   baseURL: 'http://cba.itlike.com/public/index.php?s=/api/',
@@ -9,13 +10,18 @@ const request = axios.create({
 
 // 添加请求拦截器
 request.interceptors.request.use(function (config) {
-  // 在发送请求之前做些什么
+  // 开启loading，禁止背景点击 (节流处理，防止多次无效触发)
   Toast.loading({
-    message: '请求中...',
-    forbidClick: true,
-    loadingType: 'spinner',
-    duration: 0
+    message: '加载中...',
+    forbidClick: true, // 禁止背景点击
+    loadingType: 'spinner', // 配置loading图标
+    duration: 0 // 不会自动消失
   })
+  const token = store.getters.token
+  if (token) {
+    config.headers['Access-Token'] = token
+    config.headers.platform = 'H5'
+  }
   return config
 }, function (error) {
   // 对请求错误做些什么
