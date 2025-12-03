@@ -1,29 +1,24 @@
+//这个界面的代码现在是用来模拟分类页面所需的后端的数据的。因为我目前没有写分类页面所需的后端代码。
 <template>
   <div class="category">
     <!-- 分类 -->
-    <van-nav-bar title="全部分类" fixed />
+    <van-nav-bar title="商品分类" fixed />
 
-    <!-- 搜索框 -->
-    <van-search
-      readonly
-      shape="round"
-      background="#f1f1f2"
-      placeholder="请输入搜索关键词"
-      @click="$router.push('/search')"
-    />
+    <div class="search-wrap">
+      <van-search shape="round" background="#f1f1f2" placeholder="请输入搜索关键词" />
+    </div>
 
-    <!-- 分类列表 -->
-    <div class="list-box">
-      <div class="left">
-        <ul>
-          <li v-for="(item, index) in list" :key="item.category_id">
-            <a :class="{ active: index === activeIndex }" @click="activeIndex = index" href="javascript:;">{{ item.name }}</a>
-          </li>
-        </ul>
+    <div class="category-wrap">
+      <div class="left-wrap">
+        <van-sidebar v-model="active" @change="onChange">
+          <van-sidebar-item v-for="item in list" :key="item.category_id" :title="item.name" />
+        </van-sidebar>
       </div>
-      <div class="right">
-        <div @click="$router.push(`/searchlist?categoryId=${item.category_id}`)" v-for="item in list[activeIndex]?.children" :key="item.category_id" class="cate-goods">
-          <img :src="item.image?.external_url" alt="">
+
+      <div class="right-wrap">
+        <div @click="$router.push(`/searchlist?categoryId=${item.category_id}`)" v-for="item in activeChildren"
+          :key="item.category_id" class="cate-goods">
+          <img :src="item.image.file_path" alt="">
           <p>{{ item.name }}</p>
         </div>
       </div>
@@ -32,93 +27,86 @@
 </template>
 
 <script>
-import { getCategoryData } from '@/api/category'
+// 模拟的分类数据
+const mockCategoryData = [
+  {
+    category_id: 1,
+    name: '居家生活',
+    children: [
+      { category_id: 11, name: '床品件套', image: { file_path: 'http://cba.itlike.com/public/uploads/10001/20230321/a8b2697193415d1163a431a3af3d4a25.png' } },
+      { category_id: 12, name: '被子', image: { file_path: 'http://cba.itlike.com/public/uploads/10001/20230321/a8b2697193415d1163a431a3af3d4a25.png' } }
+    ]
+  },
+  {
+    category_id: 2,
+    name: '服饰鞋包',
+    children: [
+      { category_id: 21, name: 'T恤', image: { file_path: 'http://cba.itlike.com/public/uploads/10001/20230321/a8b2697193415d1163a431a3af3d4a25.png' } },
+      { category_id: 22, name: '休闲裤', image: { file_path: 'http://cba.itlike.com/public/uploads/10001/20230321/a8b2697193415d1163a431a3af3d4a25.png' } }
+    ]
+  }
+]
+
 export default {
   name: 'CategoryPage',
-  created () {
-    this.getCategoryList()
-  },
   data () {
     return {
       list: [],
-      activeIndex: 0
+      active: 0
     }
+  },
+  computed: {
+    activeChildren () {
+      if (this.list[this.active]) {
+        return this.list[this.active].children
+      }
+      return []
+    }
+  },
+  created () {
+    this.getCategoryList()
   },
   methods: {
     async getCategoryList () {
-      const { data: { list } } = await getCategoryData()
-      this.list = list
+      // 使用模拟数据，而不是发起真实API请求
+      this.list = mockCategoryData
+    },
+    onChange (index) {
+      this.active = index
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
-// 主题 padding
-.category {
-  padding-top: 100px;
-  padding-bottom: 50px;
-  height: 100vh;
-  .list-box {
-    height: 100%;
-    display: flex;
-    .left {
-      width: 85px;
-      height: 100%;
-      background-color: #f3f3f3;
-      overflow: auto;
-      a {
-        display: block;
-        height: 45px;
-        line-height: 45px;
-        text-align: center;
-        color: #444444;
-        font-size: 12px;
-        &.active {
-          color: #fb442f;
-          background-color: #fff;
-        }
-      }
-    }
-    .right {
-      flex: 1;
-      height: 100%;
-      background-color: #ffffff;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-start;
-      align-content: flex-start;
-      padding: 10px 0;
-      overflow: auto;
-
-      .cate-goods {
-        width: 33.3%;
-        margin-bottom: 10px;
-        img {
-          width: 70px;
-          height: 70px;
-          display: block;
-          margin: 5px auto;
-        }
-        p {
-          text-align: center;
-          font-size: 12px;
-        }
-      }
-    }
-  }
+/* 此处省略了样式代码，你可以根据需要添加 */
+.category-wrap {
+  display: flex;
 }
 
-// 导航条样式定制
-.van-nav-bar {
-  z-index: 999;
+.left-wrap {
+  width: 85px;
 }
 
-// 搜索框样式定制
-.van-search {
-  position: fixed;
-  width: 100%;
-  top: 46px;
-  z-index: 999;
+.right-wrap {
+  flex: 1;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cate-goods {
+  width: 33.3%;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.cate-goods img {
+  width: 70px;
+  height: 70px;
+}
+
+.cate-goods p {
+  font-size: 12px;
 }
 </style>

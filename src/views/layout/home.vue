@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import { getHomeData } from '@/api/home'
+// import { getHomeData } from '@/api/home'
 import GoodsItem from '@/components/GoodsItem.vue'
 export default {
   name: 'HomePage',
@@ -45,16 +45,28 @@ export default {
   },
   data () {
     return {
-      bannerList: [],
-      navList: [],
-      proList: []
+      bannerList: [
+        { imgUrl: 'http://cba.itlike.com/public/uploads/10001/20230321/6f223308f33c4f3f83552f2f418d5366.jpg' },
+        { imgUrl: 'http://cba.itlike.com/public/uploads/10001/20230321/b6f53a8cc475419593e3f45d4c831393.jpg' }
+      ],
+      navList: [
+        { imgUrl: 'http://cba.itlike.com/public/uploads/10001/20230321/0b02074f63f545089a836559a8d54b83.png', text: '新品首发' },
+        { imgUrl: 'http://cba.itlike.com/public/uploads/10001/20230321/0b02074f63f545089a836559a8d54b83.png', text: '新品首发' },
+        { imgUrl: 'http://cba.itlike.com/public/uploads/10001/20230321/0b02074f63f545089a836559a8d54b83.png', text: '新品首发' },
+        { imgUrl: 'http://cba.itlike.com/public/uploads/10001/20230321/0b02074f63f545089a836559a8d54b83.png', text: '新品首发' },
+        { imgUrl: 'http://cba.itlike.com/public/uploads/10001/20230321/0b02074f63f545089a836559a8d54b83.png', text: '新品首发' }
+      ],
+      proList: [
+        { goods_id: 1, goods_image: 'http://cba.itlike.com/public/uploads/10001/20230321/a8b2697193415d1163a431a3af3d4a25.png', goods_name: '商品1', goods_price_min: '100', goods_price_max: '200' },
+        { goods_id: 2, goods_image: 'http://cba.itlike.com/public/uploads/10001/20230321/a8b2697193415d1163a431a3af3d4a25.png', goods_name: '商品2', goods_price_min: '100', goods_price_max: '200' }
+      ]
     }
   },
   async created () {
-    const { data: { pageData } } = await getHomeData()
-    this.bannerList = pageData.items.find(item => item.name === 'banner').data
-    this.navList = pageData.items.find(item => item.name === 'nav').data
-    this.proList = pageData.items.find(item => item.name === 'new').data
+    // const { data: { pageData } } = await getHomeData()
+    // this.bannerList = pageData.items.find(item => item.name === 'banner').data
+    // this.navList = pageData.items.find(item => item.name === 'nav').data
+    // this.proList = pageData.items.find(item => item.name === 'new').data
   }
 }
 </script>
